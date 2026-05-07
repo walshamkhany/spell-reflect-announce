@@ -1,0 +1,11 @@
+## Interface: 120005
+## Title: Spell Reflect Announce
+## Author: Wisam
+## Version: 1.1
+## Notes: Announces in chat when Spell Reflection (23920) is active on the player.
+## SavedVariables: SpellReflectAnnounceDB
+## AllowLoad: game
+## AllowLoadGameType: mainline
+
+SpellReflectAnnounce.lua
+SpellReflectAnnounceOptions.lua
