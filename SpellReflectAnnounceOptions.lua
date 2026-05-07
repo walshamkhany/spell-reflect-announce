@@ -6,6 +6,16 @@
 
 local addonName, ns = ...
 
+-- Defensive: options file can load before ADDON_LOADED fires for the main
+-- file in some edge cases. Make sure the saved table exists before any
+-- control reads from it.
+SpellReflectAnnounceDB = SpellReflectAnnounceDB or {}
+for k, v in pairs(ns.defaults) do
+    if SpellReflectAnnounceDB[k] == nil then
+        SpellReflectAnnounceDB[k] = v
+    end
+end
+
 local CHANNELS = {
     { value = "SAY",           label = "Say"      },
     { value = "YELL",          label = "Yell"     },
@@ -117,9 +127,23 @@ Settings.RegisterAddOnCategory(category)
 
 ns.settingsCategoryID = category:GetID()
 
--- /sra slash command -> open the panel directly.
+-- /sra slash command -> open the panel, or "/sra debug" to toggle debug logging.
 SLASH_SPELLREFLECTANNOUNCE1 = "/sra"
 SLASH_SPELLREFLECTANNOUNCE2 = "/spellreflectannounce"
-SlashCmdList["SPELLREFLECTANNOUNCE"] = function()
+SlashCmdList["SPELLREFLECTANNOUNCE"] = function(msg)
+    msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+    if msg == "debug" then
+        SpellReflectAnnounceDB.debug = not SpellReflectAnnounceDB.debug
+        DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffSRA|r debug = " .. tostring(SpellReflectAnnounceDB.debug))
+        return
+    end
+    if msg == "test" then
+        -- Simulate an announce path so we can verify chat sending works
+        -- without needing to actually cast Spell Reflection.
+        if ns.Debug then ns.Debug("Manual /sra test invoked") end
+        local fakeAura = { auraInstanceID = -GetTime(), spellId = 23920, name = "Spell Reflection" }
+        if ns.Announce then ns.Announce(fakeAura) end
+        return
+    end
     Settings.OpenToCategory(ns.settingsCategoryID)
 end
